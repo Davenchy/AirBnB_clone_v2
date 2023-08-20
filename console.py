@@ -12,6 +12,75 @@ from models.amenity import Amenity
 from models.review import Review
 
 
+def read_next_string_token(line):
+    r"""Reads next string token in line
+
+    Args:
+        line (str): line to read
+
+    Returns:
+        tuple: (token: string, rest_of_line: line)
+
+    Example:
+        >>> line = r'"value\"1\"" "value2"'
+        >>> read_next_string_token(line)
+        ('value"1"', ' "value2"')"""
+
+    token, rest_of_line, ignore, tokened = "", "", False, False
+
+    for c in line:
+        if tokened:
+            rest_of_line += c
+        elif ignore:
+            ignore = False
+            token += c
+        elif c == '\\':
+            ignore = True
+        elif c == '"':
+            if len(token) != 0:
+                tokened = True
+        else:
+            token += c
+
+    return token, rest_of_line
+
+
+def tokenize_args(args):
+    r"""Takes args as key/value pairs with spaces between and returns dict with
+    keys and values
+
+    Args:
+        args (str): args as key/value pairs with spaces between
+
+    Returns:
+        dict: dict with keys and values
+
+    Examples:
+        >>> tokenize_args(r'key1="value_1" key2="value\"2\"" num=123')
+        {'key1': 'value 1', 'key2': 'value"2"', 'num': 123}"""
+
+    data = dict()
+    while args:
+        key, _, args = args.partition("=")
+        value = None
+
+        if str(args).startswith('"'):
+            # value, _, args = args[1:].partition('"')
+            value, args = read_next_string_token(args)
+            value = value.replace('_', ' ')
+        else:
+            value, _, args = args.partition(" ")
+            if value.isdecimal():
+                value = int(value)
+            elif '.' in value:
+                value = float(value)
+
+        if value:
+            data[key.strip()] = value
+
+    return data
+
+
 class HBNBCommand(cmd.Cmd):
     """ Contains the functionality for the HBNB console"""
 
@@ -38,7 +107,7 @@ class HBNBCommand(cmd.Cmd):
     def precmd(self, line):
         """Reformat command line for advanced command syntax.
 
-        Usage: <class name>.<command>([<id> [<*args> or <**kwargs>]])
+        Usage: <class_name> . <command> ([ <id> [ <*args> or <**kwargs> ]])
         (Brackets denote optional fields in usage example.)
         """
         _cmd = _cls = _id = _args = ''  # initialize line elements
@@ -114,22 +183,45 @@ class HBNBCommand(cmd.Cmd):
         pass
 
     def do_create(self, args):
-        """ Create an object of any class"""
+        """ Create an object of any class """
+
         if not args:
             print("** class name missing **")
             return
-        elif args not in HBNBCommand.classes:
+
+        cls, _, args = args.partition(" ")
+
+        if cls not in HBNBCommand.classes:
             print("** class doesn't exist **")
             return
-        new_instance = HBNBCommand.classes[args]()
+
+        new_instance = HBNBCommand.classes[cls]()
+        args = tokenize_args(args)
+        for key, value in args.items():
+            setattr(new_instance, key, value)
+
         storage.save()
         print(new_instance.id)
         storage.save()
 
     def help_create(self):
         """ Help information for the create method """
-        print("Creates a class of any type")
-        print("[Usage]: create <className>\n")
+        print("Creates a class of any type with params\n")
+        print("[Usage]: create <className> <param 1> <param 2> ...\n")
+        print("Where <className> is the name of the class to create")
+        print(
+            "and <param> is any number of parameters to assign to the class\n")
+
+        print("The <param> format: <key_name>=<value>")
+        print("Value types with examples:")
+        print("\tint: 123")
+        print("\tfloat: -123.456")
+        print('\tstr: "string_\\"quote_escape\\"_string"')
+        print("""\t\tStrings must be in double quotes
+\t\tall '_' replaced by spaces
+\t\tthe above example is solved to => String "quote_escape" String
+""")
+        print("Statement Example:\n\tcreate State name=\"California\"")
 
     def do_show(self, args):
         """ Method to show an individual object """
@@ -198,7 +290,7 @@ class HBNBCommand(cmd.Cmd):
         print("[Usage]: destroy <className> <objectId>\n")
 
     def do_all(self, args):
-        """ Shows all objects, or all objects of a class"""
+        """ Shows all objects, or all objects of a class """
         print_list = []
 
         if args:
