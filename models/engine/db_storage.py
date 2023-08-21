@@ -2,15 +2,7 @@
 """This module defines a class to manage db storage for hbnb clone."""
 from sqlalchemy import create_engine
 from os import environ
-from models.base_model import Base
 from sqlalchemy.orm import sessionmaker, scoped_session
-from models.amenity import Amenity
-from models.city import City
-from models.place import Place
-from models.review import Review
-from models.user import User
-from models.state import State
-from models.base_model import BaseModel
 
 
 class DBStorage:
@@ -55,7 +47,6 @@ class DBStorage:
         """Adds new object to storage dictionary."""
         self.__session.add(obj)
 
-
     def save(self):
         """Saves storage dictionary to db."""
         self.__session.commit()
@@ -68,6 +59,8 @@ class DBStorage:
     def reload(self):
         """Create all tables in the database"""
         Base.metadata.create_all(DBStorage.__engine)
-        session_factory = sessionmaker(bind=self.__engine, expire_on_commit=False)
-        Session = scoped_session(session_factory)   # to make Session thread-safe
+        session_factory = sessionmaker(
+            bind=self.__engine, expire_on_commit=False)
+        # to make Session thread-safe
+        Session = scoped_session(session_factory)
         self.__session = Session()
