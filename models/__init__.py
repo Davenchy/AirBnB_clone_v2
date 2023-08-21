@@ -13,7 +13,7 @@ def injectClasses():
         return
     setattr(injectClasses, '__complete__', True)
 
-    from models.base_model import BaseModel
+    from models.base_model import BaseModel, Base
     from models.user import User
     from models.place import Place
     from models.state import State
@@ -21,7 +21,7 @@ def injectClasses():
     from models.amenity import Amenity
     from models.review import Review
 
-    injector.register(BaseModel, User, Place,
+    injector.register(Base, BaseModel, User, Place,
                       State, City, Amenity, Review,)
 
 
