@@ -8,11 +8,11 @@ injector = ClassesInjector()
 general_injector = ClassesInjector()
 
 
-def injectClasses():
+def initModelsAndStorage():
     """Inject classes in the injector only once"""
-    if getattr(injectClasses, '__complete__', False):
+    if getattr(initModelsAndStorage, '__complete__', False):
         return
-    setattr(injectClasses, '__complete__', True)
+    setattr(initModelsAndStorage, '__complete__', True)
 
     from models.base_model import BaseModel, Base
     from models.user import User
@@ -22,9 +22,10 @@ def injectClasses():
     from models.amenity import Amenity
     from models.review import Review
 
-    general_injector.register(Base)
-    injector.register(BaseModel, User, Place,
-                      State, City, Amenity, Review,)
+    general_injector.register(Base, BaseModel)
+    injector.register(User, Place, State, City, Amenity, Review)
+
+    storage.reload()
 
 
 if (environ.get('HBNB_TYPE_STORAGE') == 'db'):

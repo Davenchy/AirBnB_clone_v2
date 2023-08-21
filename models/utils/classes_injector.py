@@ -4,7 +4,10 @@
 
 class ClassesInjector:
     """Register classes once and inject them every where"""
-    _classes = {}
+
+    def __init__(self):
+        """Initialize the injector"""
+        self._classes = {}
 
     def register(self, *args, **kwargs):
         """Register a new class

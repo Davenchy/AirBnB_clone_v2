@@ -282,21 +282,16 @@ class HBNBCommand(cmd.Cmd):
 
     def do_all(self, args):
         """ Shows all objects, or all objects of a class """
-        print_list = []
 
         if args:
-            args = args.split(' ')[0]  # remove possible trailing args
+            args = args.strip()
             if args not in models.injector.classes:
                 print("** class doesn't exist **")
                 return
-            for k, v in models.storage._FileStorage__objects.items():
-                if k.split('.')[0] == args:
-                    print_list.append(str(v))
         else:
-            for k, v in models.storage._FileStorage__objects.items():
-                print_list.append(str(v))
+            args = None
 
-        print(print_list)
+        print([str(v) for v in models.storage.all(args).values()])
 
     def help_all(self):
         """ Help information for the all command """
@@ -405,6 +400,5 @@ class HBNBCommand(cmd.Cmd):
 
 
 if __name__ == "__main__":
-    models.injectClasses()
-    models.storage.reload()
+    models.initModelsAndStorage()
     HBNBCommand().cmdloop()

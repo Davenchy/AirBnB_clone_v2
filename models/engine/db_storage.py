@@ -19,8 +19,8 @@ class DBStorage:
         host = environ.get('HBNB_MYSQL_HOST')
         db = environ.get('HBNB_MYSQL_DB')
 
-        self.__engine = create_engine(f'mysql+mysqldb://{user}:{passwd}\
-                                           @{host}/{db}', pool_pre_ping=True)
+        self.__engine = create_engine(
+            f'mysql+mysqldb://{user}:{passwd}@{host}/{db}', pool_pre_ping=True)
 
         if (environ.get('HBNB_ENV') == 'test'):
             Base = models.general_injector['Base']
@@ -28,22 +28,20 @@ class DBStorage:
 
     def all(self, cls=None):
         """Return the list of objects of (optional one type of) class."""
-        if not cls:
+        if cls is None:
             classes = models.injector.classes.values()
             all_obj = {}
             for iclass in classes:
                 query_result = self.__session.query(iclass).all()
                 for obj in query_result:
-                    all_obj[f'{iclass.__name__}.{obj.id}'] = obj
+                    all_obj[obj.objectKey] = obj
             return all_obj
 
         if (type(cls) == str):
-            cls = eval(cls)
-        cls_objects = {}
-        query_result = self.__session.query(cls).all()
-        for obj in query_result:
-            cls_objects[f'{cls.__name__}.{obj.id}'] = obj
-        return cls_objects
+            cls = models.injector[cls]
+
+        result = self.__session.query(cls).all()
+        return {obj.objectKey: obj for obj in result}
 
     def new(self, obj):
         """Adds new object to storage dictionary."""
