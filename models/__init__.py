@@ -5,6 +5,7 @@ from models.utils.classes_injector import ClassesInjector
 
 storage = None
 injector = ClassesInjector()
+general_injector = ClassesInjector()
 
 
 def injectClasses():
@@ -21,7 +22,8 @@ def injectClasses():
     from models.amenity import Amenity
     from models.review import Review
 
-    injector.register(Base, BaseModel, User, Place,
+    general_injector.register(Base)
+    injector.register(BaseModel, User, Place,
                       State, City, Amenity, Review,)
 
 
