@@ -30,14 +30,10 @@ class FileStorage:
         """Loads storage dictionary from file"""
         # load injected classes
         classes = injector.classes
-        print("reloading database")
-        print("injected classes:", classes)
-
         try:
             temp = {}
             with open(FileStorage.__file_path, 'r') as f:
                 temp = json.load(f)
-                print("json:", temp)
 
                 for key, val in temp.items():
                     self.all()[key] = classes[val['__class__']](**val)

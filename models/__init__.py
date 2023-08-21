@@ -13,7 +13,6 @@ def injectClasses():
         return
     setattr(injectClasses, '__complete__', True)
 
-    print("complete: ", injectClasses.__complete__)
     from models.base_model import BaseModel
     from models.user import User
     from models.place import Place
@@ -32,6 +31,3 @@ if (environ.get('HBNB_TYPE_STORAGE') == 'db'):
 else:
     from models.engine.file_storage import FileStorage
     storage = FileStorage()
-
-injectClasses()
-storage.reload()
