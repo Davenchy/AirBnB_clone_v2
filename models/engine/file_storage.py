@@ -13,6 +13,12 @@ class FileStorage:
         """Return the list of objects of optional one type of class."""
         if not cls:
             return FileStorage.__objects
+
+        classes = injector.classes
+
+        if type(cls) == str:
+            cls = classes[cls]
+
         return {k: v for k, v in FileStorage.__objects.items()
                 if isinstance(v, cls)}
 
