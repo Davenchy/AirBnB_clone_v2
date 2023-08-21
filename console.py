@@ -2,14 +2,7 @@
 """ Console Module """
 import cmd
 import sys
-from models.base_model import BaseModel
-from models.__init__ import storage
-from models.user import User
-from models.place import Place
-from models.state import State
-from models.city import City
-from models.amenity import Amenity
-from models.review import Review
+import models
 
 
 def read_next_string_token(line):
@@ -87,11 +80,6 @@ class HBNBCommand(cmd.Cmd):
     # determines prompt for interactive/non-interactive modes
     prompt = '(hbnb) ' if sys.__stdin__.isatty() else ''
 
-    classes = {
-        'BaseModel': BaseModel, 'User': User, 'Place': Place,
-        'State': State, 'City': City, 'Amenity': Amenity,
-        'Review': Review
-    }
     dot_cmds = ['all', 'count', 'show', 'destroy', 'update']
     types = {
         'number_rooms': int, 'number_bathrooms': int,
@@ -191,18 +179,20 @@ class HBNBCommand(cmd.Cmd):
 
         cls, _, args = args.partition(" ")
 
-        if cls not in HBNBCommand.classes:
+        if not models.injector.hasClass(cls):
             print("** class doesn't exist **")
             return
 
-        new_instance = HBNBCommand.classes[cls]()
+        cls = models.injector[cls]
+        new_instance = cls()
         args = tokenize_args(args)
+        # !TODO: attributes should be processed by BaseModel itself
         for key, value in args.items():
             setattr(new_instance, key, value)
 
-        storage.save()
         print(new_instance.id)
-        storage.save()
+        models.storage.new(new_instance)
+        models.storage.save()
 
     def help_create(self):
         """ Help information for the create method """
@@ -237,7 +227,8 @@ class HBNBCommand(cmd.Cmd):
             print("** class name missing **")
             return
 
-        if c_name not in HBNBCommand.classes:
+        classes = models.injector.classes
+        if c_name not in classes:
             print("** class doesn't exist **")
             return
 
@@ -247,7 +238,7 @@ class HBNBCommand(cmd.Cmd):
 
         key = c_name + "." + c_id
         try:
-            print(storage._FileStorage__objects[key])
+            print(models.storage._FileStorage__objects[key])
         except KeyError:
             print("** no instance found **")
 
@@ -268,7 +259,7 @@ class HBNBCommand(cmd.Cmd):
             print("** class name missing **")
             return
 
-        if c_name not in HBNBCommand.classes:
+        if c_name not in models.injector.classes:
             print("** class doesn't exist **")
             return
 
@@ -279,8 +270,8 @@ class HBNBCommand(cmd.Cmd):
         key = c_name + "." + c_id
 
         try:
-            del (storage.all()[key])
-            storage.save()
+            del (models.storage.all()[key])
+            models.storage.save()
         except KeyError:
             print("** no instance found **")
 
@@ -295,14 +286,14 @@ class HBNBCommand(cmd.Cmd):
 
         if args:
             args = args.split(' ')[0]  # remove possible trailing args
-            if args not in HBNBCommand.classes:
+            if args not in models.injector.classes:
                 print("** class doesn't exist **")
                 return
-            for k, v in storage._FileStorage__objects.items():
+            for k, v in models.storage._FileStorage__objects.items():
                 if k.split('.')[0] == args:
                     print_list.append(str(v))
         else:
-            for k, v in storage._FileStorage__objects.items():
+            for k, v in models.storage._FileStorage__objects.items():
                 print_list.append(str(v))
 
         print(print_list)
@@ -315,7 +306,7 @@ class HBNBCommand(cmd.Cmd):
     def do_count(self, args):
         """Count current number of class instances"""
         count = 0
-        for k, _ in storage._FileStorage__objects.items():
+        for k, _ in models.storage._FileStorage__objects.items():
             if args == k.split('.')[0]:
                 count += 1
         print(count)
@@ -335,7 +326,7 @@ class HBNBCommand(cmd.Cmd):
         else:  # class name not present
             print("** class name missing **")
             return
-        if c_name not in HBNBCommand.classes:  # class name invalid
+        if c_name not in models.injector.classes:  # class name invalid
             print("** class doesn't exist **")
             return
 
@@ -351,7 +342,7 @@ class HBNBCommand(cmd.Cmd):
         key = c_name + "." + c_id
 
         # determine if key is present
-        if key not in storage.all():
+        if key not in models.storage.all():
             print("** no instance found **")
             return
 
@@ -385,7 +376,7 @@ class HBNBCommand(cmd.Cmd):
             args = [att_name, att_val]
 
         # retrieve dictionary of current objects
-        new_dict = storage.all()[key]
+        new_dict = models.storage.all()[key]
 
         # iterate through attr names and values
         for i, att_name in enumerate(args):
