@@ -4,6 +4,7 @@ from models.base_model import BaseModel, Base
 from sqlalchemy import Column, String, ForeignKey
 from sqlalchemy.orm import relationship
 from models.place import place_amenity
+import models.place  # !NOTE: required for ORM
 
 
 class Amenity(BaseModel, Base):
