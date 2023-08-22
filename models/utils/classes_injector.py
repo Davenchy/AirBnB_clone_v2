@@ -40,6 +40,8 @@ class ClassesInjector:
             name (str): class name
 
         Returns: bool"""
+        if type(name) is not str:
+            raise TypeError('name must be a string')
         return name in self._classes
 
     def __getitem__(self, name):

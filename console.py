@@ -425,6 +425,34 @@ class HBNBCommand(cmd.Cmd):
         print(
             "Usage: update <className> <id> {'<attName>': '<attVal>', ...}\n")
 
+    def do_classes(self, _):
+        """ Lists all allowed classes """
+        print([key for key in models.injector.keys])
+
+    def help_classes(self):
+        """ Help information for the classes command """
+        print("Lists all classes of objects that can be instantiated.")
+        print("[Usage]: classes\n")
+
+    def do_attributes(self, arg):
+        """ Lists all attributes of a class """
+
+        arg = arg.strip()
+        if not arg:
+            print("** class name missing **")
+            return
+        if not models.injector.hasClass(arg):
+            print("** class doesn't exist **")
+            return
+
+        req_attrs = models.injector[arg].getRequiredAttributes()
+        print(req_attrs)
+
+    def help_attributes(self):
+        """ Help information for the attributes command """
+        print("Lists all attributes of a class")
+        print("[Usage]: attributes <className>\n")
+
 
 if __name__ == "__main__":
     models.initModelsAndStorage()
