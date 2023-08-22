@@ -5,6 +5,8 @@ from sqlalchemy import Column, String, ForeignKey, Integer, Float, Table
 from sqlalchemy.orm import relationship
 from models import storage, injector
 from models.review import Review
+import models.user  # !NOTE: required for ORM
+import models.user  # !NOTE required for ORM
 from os import environ
 
 place_amenity = Table(
