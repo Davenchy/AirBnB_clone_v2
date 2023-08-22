@@ -84,7 +84,7 @@ class HBNBCommand(cmd.Cmd):
     types = {
         'number_rooms': int, 'number_bathrooms': int,
         'max_guest': int, 'price_by_night': int,
-        'latitude': float, 'longitude': float
+        'latitude': float, 'longitude': float,
     }
 
     def preloop(self):
@@ -187,6 +187,8 @@ class HBNBCommand(cmd.Cmd):
         new_instance = cls()
         args = tokenize_args(args)
         # !TODO: attributes should be processed by BaseModel itself
+        # !TODO: should check for valid attributes and show warning for missing
+        # ones
         for key, value in args.items():
             setattr(new_instance, key, value)
 
@@ -215,20 +217,15 @@ class HBNBCommand(cmd.Cmd):
 
     def do_show(self, args):
         """ Method to show an individual object """
-        new = args.partition(" ")
-        c_name = new[0]
-        c_id = new[2]
 
-        # guard against trailing args
-        if c_id and ' ' in c_id:
-            c_id = c_id.partition(' ')[0]
-
-        if not c_name:
+        if not args:
             print("** class name missing **")
             return
 
-        classes = models.injector.classes
-        if c_name not in classes:
+        c_name, _, c_id = args.partition(" ")
+        c_id = c_id.strip()
+
+        if not models.injector.hasClass(c_name):
             print("** class doesn't exist **")
             return
 
@@ -236,9 +233,11 @@ class HBNBCommand(cmd.Cmd):
             print("** instance id missing **")
             return
 
-        key = c_name + "." + c_id
+        BaseModel = models.general_injector['BaseModel']
+        all_objs = models.storage.all(c_name)
         try:
-            print(models.storage._FileStorage__objects[key])
+            obj = all_objs[BaseModel.generateObjectKey(c_name, c_id)]
+            print(obj)
         except KeyError:
             print("** no instance found **")
 
@@ -249,17 +248,15 @@ class HBNBCommand(cmd.Cmd):
 
     def do_destroy(self, args):
         """ Destroys a specified object """
-        new = args.partition(" ")
-        c_name = new[0]
-        c_id = new[2]
-        if c_id and ' ' in c_id:
-            c_id = c_id.partition(' ')[0]
 
-        if not c_name:
+        if not args:
             print("** class name missing **")
             return
 
-        if c_name not in models.injector.classes:
+        c_name, _, c_id = args.partition(" ")
+        c_id = c_id.strip()
+
+        if not models.injector.has(c_name):
             print("** class doesn't exist **")
             return
 
@@ -267,13 +264,18 @@ class HBNBCommand(cmd.Cmd):
             print("** instance id missing **")
             return
 
-        key = c_name + "." + c_id
-
+        obj = None
         try:
-            del (models.storage.all()[key])
-            models.storage.save()
+            BaseModel = models.general_injector['BaseModel']
+            all_objs = models.storage.all(c_name)
+            key = BaseModel.generateObjectKey(c_name, c_id)
+            obj = all_objs[key]
         except KeyError:
             print("** no instance found **")
+
+        if obj:
+            models.storage.delete(obj)
+            models.storage.save()
 
     def help_destroy(self):
         """ Help information for the destroy command """
@@ -300,103 +302,126 @@ class HBNBCommand(cmd.Cmd):
 
     def do_count(self, args):
         """Count current number of class instances"""
-        count = 0
-        for k, _ in models.storage._FileStorage__objects.items():
-            if args == k.split('.')[0]:
-                count += 1
-        print(count)
+        args = args.split()
+        args = None if not args else args[0]
+        objs = models.storage.all(args)
+        print(len(objs))
 
     def help_count(self):
         """ """
-        print("Usage: count <class_name>")
+        print("Usage: count [<class_name>]")
 
     def do_update(self, args):
         """ Updates a certain object with new info """
         c_name = c_id = att_name = att_val = kwargs = ''
 
-        # isolate cls from id/args, ex: (<cls>, delim, <id/args>)
-        args = args.partition(" ")
-        if args[0]:
-            c_name = args[0]
-        else:  # class name not present
+        if not args:
             print("** class name missing **")
             return
-        if c_name not in models.injector.classes:  # class name invalid
+
+        # isolate class_name from id/args, ex: (<cls>, delim, <id/args>)
+        c_name, _, args = args.partition(" ")
+
+        if not models.injector.hasClass(c_name):  # class name invalid
             print("** class doesn't exist **")
             return
 
-        # isolate id from args
-        args = args[2].partition(" ")
-        if args[0]:
-            c_id = args[0]
-        else:  # id not present
+        if not args:  # id not present
             print("** instance id missing **")
             return
 
+        # isolate id from args
+        c_id, _, args = args.partition(" ")
+
         # generate key from class and id
-        key = c_name + "." + c_id
+        BaseModel = models.general_injector['BaseModel']
+        key = BaseModel.generateObjectKey(c_name, c_id)
+
+        all_objs = models.storage.all(c_name)
 
         # determine if key is present
-        if key not in models.storage.all():
+        if key not in all_objs:
             print("** no instance found **")
             return
 
-        # first determine if kwargs or args
-        if '{' in args[2] and '}' in args[2] and type(eval(args[2])) is dict:
-            kwargs = eval(args[2])
-            args = []  # reformat kwargs into list, ex: [<name>, <value>, ...]
-            for k, v in kwargs.items():
-                args.append(k)
-                args.append(v)
+        args = self.__parse_update_args(args)  # parse the passed args
+        if not args:
+            return
+
+        obj = all_objs[key]  # get the instance by key
+        self.__apply_update(obj, args)  # apply all updates to the object
+
+    def __parse_update_args(self, args):
+        """ Parses update method arguments
+
+        Args:
+            args (str): args as key/value pairs with spaces between
+            or python like dictionary
+
+        Returns: dict|None - either dictionary of attributes key/value or None
+        """
+
+        if not args:
+            print("** attribute name missing **")
+            return None
+
+        # first determine if python like dict or key/value args
+        if '{' in args and '}' in args and type(eval(args)) is dict:
+            args = eval(args)
         else:  # isolate args
-            args = args[2]
-            if args and args[0] == '\"':  # check for quoted arg
-                second_quote = args.find('\"', 1)
+            att_name, att_val = None, None
+
+            if args[0] == '"':  # check for quoted key
+                second_quote = args.find('"', 1)
                 att_name = args[1:second_quote]
                 args = args[second_quote + 1:]
+            else:
+                att_name, _, args = args.partition(' ')
 
-            args = args.partition(' ')
+            if not args:  # no value
+                print("** value missing **")
+                return None
 
-            # if att_name was not quoted arg
-            if not att_name and args[0] != ' ':
-                att_name = args[0]
-            # check for quoted val arg
-            if args[2] and args[2][0] == '\"':
-                att_val = args[2][1:args[2].find('\"', 1)]
+            # check for quoted val
+            if args[0] == '"':
+                att_val = args[1:args.find('"', 1)]
+            else:
+                att_val, _, args = args.partition(' ')
 
-            # if att_val was not quoted arg
-            if not att_val and args[2]:
-                att_val = args[2].partition(' ')[0]
+            args = {att_name: att_val}
 
-            args = [att_name, att_val]
+        return args
 
-        # retrieve dictionary of current objects
-        new_dict = models.storage.all()[key]
+    def __apply_update(self, obj, args):
+        """Applies updates to an individual object
 
-        # iterate through attr names and values
-        for i, att_name in enumerate(args):
-            # block only runs on even iterations
-            if (i % 2 == 0):
-                att_val = args[i + 1]  # following item is value
-                if not att_name:  # check for att_name
-                    print("** attribute name missing **")
-                    return
-                if not att_val:  # check for att_value
-                    print("** value missing **")
-                    return
-                # type cast as necessary
-                if att_name in HBNBCommand.types:
-                    att_val = HBNBCommand.types[att_name](att_val)
+        Args:
+            obj (BaseModel based Object): object to update
+            args (dict): attributes to update key/value
+        """
+        # type cast as necessary
+        valid_args = {}
+        for key, value in args.items():
+            if key in ['__class__', 'id', 'updated_at', 'created_at']:
+                continue
+            if key in HBNBCommand.types:
+                value_type = HBNBCommand.types[key]
+                valid_args[key] = value_type(value)
+            else:
+                valid_args[key] = str(value)
 
-                # update dictionary with name, value pair
-                new_dict.__dict__.update({att_name: att_val})
-
-        new_dict.save()  # save updates to file
+        # update dictionary with name, value pair
+        obj.__dict__.update(valid_args)
+        print(str(obj))  # !FIX: Crash here
+        # !FIX: Nothing saved
+        obj.save()  # save updates to file
 
     def help_update(self):
         """ Help information for the update class """
         print("Updates an object with new information")
-        print("Usage: update <className> <id> <attName> <attVal>\n")
+        print("Usage: update <className> <id> <attName> <attVal>")
+        print(
+            "Usage: update <className> <id> {'<attName>': '<attVal>', ...}\n")
 
 
 if __name__ == "__main__":

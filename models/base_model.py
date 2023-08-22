@@ -77,4 +77,17 @@ class BaseModel:
         Format: <class_name>.<uuid>
 
         Returns: string"""
-        return self.__class__.__name__ + "." + self.id
+        return BaseModel.generateObjectKey(self.__class__.__name__, self.id)
+
+    @staticmethod
+    def generateObjectKey(cls, id):
+        """Returns the string representation of the instance
+
+        Format: <class_name>.<uuid>
+
+        Args:
+            cls (str): class name
+            id (str): instance id
+
+        Returns: string"""
+        return "{}.{}".format(cls, id)

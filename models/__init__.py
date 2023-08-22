@@ -19,11 +19,12 @@ def initModelsAndStorage():
     from models.place import Place
     from models.state import State
     from models.city import City
-    from models.amenity import Amenity
+    # from models.amenity import Amenity
     from models.review import Review
 
     general_injector.register(Base, BaseModel)
-    injector.register(User, Place, State, City, Amenity, Review)
+    # !TODO: register Amenity model to injector after implementing
+    injector.register(User, Place, State, City, Review)
 
     storage.reload()
 
