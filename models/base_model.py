@@ -91,3 +91,15 @@ class BaseModel:
 
         Returns: string"""
         return "{}.{}".format(cls, id)
+
+    @classmethod
+    def getRequiredAttributes(cls):
+        """Returns a list of required attributes
+
+        Returns: list"""
+        table = getattr(cls, '__table__', None)
+        if table is None:
+            return []
+        return [c.name for c in table.columns if (not c.primary_key
+                                                  and not c.nullable
+                                                  and not c.default)]

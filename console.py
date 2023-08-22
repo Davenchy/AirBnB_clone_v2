@@ -186,9 +186,14 @@ class HBNBCommand(cmd.Cmd):
         cls = models.injector[cls]
         new_instance = cls()
         args = tokenize_args(args)
-        # !TODO: attributes should be processed by BaseModel itself
-        # !TODO: should check for valid attributes and show warning for missing
-        # ones
+
+        req_attrs = cls.getRequiredAttributes()
+        for attr in req_attrs:
+            if attr not in args:
+                print("** missing attribute: {} **".format(attr))
+                return
+
+        # Looks like this is the way to do it, Holy Crab!!!
         for key, value in args.items():
             setattr(new_instance, key, value)
 
@@ -256,7 +261,7 @@ class HBNBCommand(cmd.Cmd):
         c_name, _, c_id = args.partition(" ")
         c_id = c_id.strip()
 
-        if not models.injector.has(c_name):
+        if not models.injector.hasClass(c_name):
             print("** class doesn't exist **")
             return
 
@@ -313,8 +318,6 @@ class HBNBCommand(cmd.Cmd):
 
     def do_update(self, args):
         """ Updates a certain object with new info """
-        c_name = c_id = att_name = att_val = kwargs = ''
-
         if not args:
             print("** class name missing **")
             return
@@ -399,21 +402,20 @@ class HBNBCommand(cmd.Cmd):
             obj (BaseModel based Object): object to update
             args (dict): attributes to update key/value
         """
-        # type cast as necessary
-        valid_args = {}
         for key, value in args.items():
+            # ignore invalid attributes
             if key in ['__class__', 'id', 'updated_at', 'created_at']:
-                continue
+                print("** not allowed attribute name: {} **".format(key))
+                return
+
+            # type cast as necessary
             if key in HBNBCommand.types:
                 value_type = HBNBCommand.types[key]
-                valid_args[key] = value_type(value)
-            else:
-                valid_args[key] = str(value)
+                value = value_type(value)
 
-        # update dictionary with name, value pair
-        obj.__dict__.update(valid_args)
-        print(str(obj))  # !FIX: Crash here
-        # !FIX: Nothing saved
+            # update the value
+            setattr(obj, key, value)
+
         obj.save()  # save updates to file
 
     def help_update(self):
