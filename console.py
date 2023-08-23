@@ -292,7 +292,9 @@ class HBNBCommand(cmd.Cmd):
         else:
             args = None
 
-        print([str(v) for v in models.storage.all(args).values()])
+        objs = [str(v) for v in models.storage.all(args).values()]
+        objs = ", ".join(objs)
+        print('[{}]'.format(objs))
 
     def help_all(self):
         """ Help information for the all command """
