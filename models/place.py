@@ -6,7 +6,6 @@ from sqlalchemy.orm import relationship
 from models import storage, injector
 from models.review import Review
 import models.user  # !NOTE: required for ORM
-import models.user  # !NOTE required for ORM
 from os import environ
 
 place_amenity = Table(
@@ -44,7 +43,7 @@ class Place(BaseModel, Base):
                                backref='place')
         amenities = relationship('Amenity', secondary=place_amenity,
                                  viewonly=False,
-                                 back_populates='place_amenities')
+                                 backref='place_amenities')
     else:
         @property
         def reviews(self):
@@ -60,7 +59,13 @@ class Place(BaseModel, Base):
         @property
         def amenities(self):
             """Get a list of Amenity instances for the current place."""
-            return self.amenity_ids
+            Amenity = injector.classes['Amenity']
+            amenity_list = []
+            all_amenities = storage.all(Amenity)
+            for amenity in all_amenities.values():
+                if amenity.place_id == self.id:
+                    amenity_list.append(amenity)
+            return amenity_list
 
         @amenities.setter
         def amenities(self, new_amenity):
