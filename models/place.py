@@ -43,7 +43,7 @@ class Place(BaseModel, Base):
                                backref='place')
         amenities = relationship('Amenity', secondary=place_amenity,
                                  viewonly=False,
-                                 backref='place_amenities')
+                                 back_populates='place_amenities')
     else:
         @property
         def reviews(self):
@@ -59,13 +59,7 @@ class Place(BaseModel, Base):
         @property
         def amenities(self):
             """Get a list of Amenity instances for the current place."""
-            Amenity = injector.classes['Amenity']
-            amenity_list = []
-            all_amenities = storage.all(Amenity)
-            for amenity in all_amenities.values():
-                if amenity.place_id == self.id:
-                    amenity_list.append(amenity)
-            return amenity_list
+            return self.amenity_ids
 
         @amenities.setter
         def amenities(self, new_amenity):
