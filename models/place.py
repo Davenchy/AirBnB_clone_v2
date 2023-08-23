@@ -3,7 +3,7 @@
 from models.base_model import BaseModel, Base
 from sqlalchemy import Column, String, ForeignKey, Integer, Float, Table
 from sqlalchemy.orm import relationship
-from models import storage
+from models import storage, injector
 from models.review import Review
 import models.user  # !NOTE: required for ORM
 import models.user  # !NOTE required for ORM
@@ -65,7 +65,7 @@ class Place(BaseModel, Base):
         @amenities.setter
         def amenities(self, new_amenity):
             """append new Amenity's id to the attribute amenity_ids."""
-            from models.amenity import Amenity
+            Amenity = injector['Amenity']
             if type(new_amenity) == Amenity:
                 if new_amenity.id not in self.amenity_ids:
                     self.amenity_ids.append(new_amenity.id)

@@ -23,19 +23,13 @@ class DBStorage:
             f'mysql+mysqldb://{user}:{passwd}@{host}/{db}', pool_pre_ping=True)
 
         if (environ.get('HBNB_ENV') == 'test'):
-            Base = models.base_model.Base
+            Base = models.general_injector['Base']
             Base.metadata.drop_all(self.__engine)
 
     def all(self, cls=None):
         """Return the list of objects of (optional one type of) class."""
         if cls is None:
-            classes = [models.base_model.BaseModel,
-                       models.user.User,
-                       models.place.Place,
-                       models.city.City,
-                       models.amenity.Amenity,
-                       models.state.State,
-                       models.review.Review]
+            classes = models.injector.classes.values()
             all_obj = {}
             for iclass in classes:
                 query_result = self.__session.query(iclass).all()
@@ -44,7 +38,7 @@ class DBStorage:
             return all_obj
 
         if (type(cls) == str):
-            cls = eval(cls)
+            cls = models.injector[cls]
 
         result = self.__session.query(cls).all()
         return {obj.objectKey: obj for obj in result}
@@ -64,7 +58,7 @@ class DBStorage:
 
     def reload(self):
         """Create all tables in the database"""
-        Base = models.base_model.Base
+        Base = models.general_injector['Base']
         Base.metadata.create_all(self.__engine)
         session_factory = sessionmaker(
             bind=self.__engine, expire_on_commit=False)
