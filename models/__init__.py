@@ -25,8 +25,6 @@ def initModelsAndStorage():
     general_injector.register(Base, BaseModel)
     injector.register(User, Place, State, City, Amenity, Review)
 
-    storage.reload()
-
 
 if (environ.get('HBNB_TYPE_STORAGE') == 'db'):
     from models.engine.db_storage import DBStorage
@@ -34,3 +32,5 @@ if (environ.get('HBNB_TYPE_STORAGE') == 'db'):
 else:
     from models.engine.file_storage import FileStorage
     storage = FileStorage()
+
+storage.reload()

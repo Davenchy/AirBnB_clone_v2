@@ -1,8 +1,13 @@
 #!/usr/bin/python3
 """This module defines a class to manage file storage for hbnb clone"""
 import json
-from models import injector
-
+from models.base_model import BaseModel
+from models.user import User
+from models.place import Place
+from models.city import City
+from models.amenity import Amenity
+from models.state import State
+from models.review import Review
 
 class FileStorage:
     """This class manages storage of hbnb models in JSON format"""
@@ -14,10 +19,8 @@ class FileStorage:
         if not cls:
             return FileStorage.__objects
 
-        classes = injector.classes
-
         if type(cls) == str:
-            cls = classes[cls]
+            cls = eval(cls)
 
         return {k: v for k, v in FileStorage.__objects.items()
                 if isinstance(v, cls)}
@@ -34,15 +37,19 @@ class FileStorage:
 
     def reload(self):
         """Loads storage dictionary from file"""
-        # load injected classes
-        classes = injector.classes
         try:
-            temp = {}
-            with open(FileStorage.__file_path, 'r') as f:
-                temp = json.load(f)
+            import os
+            # A dictionary to map classes names from `str` to `type`
+            classes_names = {'BaseModel': BaseModel, 'User': User, 'Place': Place,
+                            'City': City, 'Amenity': Amenity, 'State': State,
+                            'Review': Review}
 
-                for key, val in temp.items():
-                    self.all()[key] = classes[val['__class__']](**val)
+            if os.path.exists(FileStorage.__file_path):
+                with open(FileStorage.__file_path, 'r') as f:
+                    for value in json.load(f).values():
+                        # values are dicts
+                        # so we need to convert them to instances
+                        self.new(classes_names[value['__class__']](**value))
         except FileNotFoundError:
             pass
 
