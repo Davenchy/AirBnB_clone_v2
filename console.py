@@ -170,30 +170,36 @@ class HBNBCommand(cmd.Cmd):
         """ Overrides the emptyline method of CMD """
         pass
 
-    def do_create(self, line):
+    def do_create(self, args):
         """ Create an object of any class """
 
-        try:
-            if not line:
-                raise SyntaxError()
-
-            my_list = line.split()
-            obj = models.injector.classes[my_list[0]]()
-            print(obj.id)
-            for num in range(1, len(my_list)):
-                attributes = my_list[num].split('=')
-                attributes[1] = attributes[1].replace('_', ' ')
-                try:
-                    attributes[1] = eval(attributes[1])
-                except:
-                    pass
-                if type(attributes[1]) is not tuple:
-                    setattr(obj, attributes[0], attributes[1])
-            obj.save()
-        except SyntaxError:
+        if not args:
             print("** class name missing **")
-        except NameError:
+            return
+
+        cls, _, args = args.partition(" ")
+
+        if not models.injector.hasClass(cls):
             print("** class doesn't exist **")
+            return
+
+        cls = models.injector[cls]
+        new_instance = cls()
+        args = tokenize_args(args)
+
+        req_attrs = cls.getRequiredAttributes()
+        for attr in req_attrs:
+            if attr not in args:
+                print("** missing attribute: {} **".format(attr))
+                return
+
+        # Looks like this is the way to do it, Holy Crab!!!
+        for key, value in args.items():
+            setattr(new_instance, key, value)
+
+        print(new_instance.id)
+        models.storage.new(new_instance)
+        models.storage.save()
 
     def help_create(self):
         """ Help information for the create method """
