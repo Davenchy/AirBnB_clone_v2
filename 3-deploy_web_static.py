@@ -1,7 +1,7 @@
 #!/usr/bin/python3
 """A Fabric 3.1.14 script to manage my servers deployment"""
 
-from fabric.api import local, env, put, run
+from fabric.api import local, env, put, run, execute, runs_once, task
 from os.path import exists, getsize, basename, join
 from os import mkdir
 from datetime import datetime
@@ -11,6 +11,7 @@ env.hosts = ['54.162.238.187', '54.175.189.248']  # servers ip addresses
 env.key_filename = "~/.ssh/school"
 
 
+@task
 def do_pack():
     """Pack the web_static dir into web_static_<datetime>.tgz"""
 
@@ -37,6 +38,7 @@ def do_pack():
         return None
 
 
+@task
 def do_deploy(archive_path):
     """Deploys the packed web_static directory state to my servers"""
 
@@ -71,11 +73,16 @@ def do_deploy(archive_path):
     return True
 
 
+@task
+@runs_once
 def deploy():
     """Packs the current source state into an archive then deploys it"""
     archive_path = do_pack()
     if archive_path is None:
         return False
 
-    is_deployed = do_deploy(archive_path)
-    return is_deployed
+    results = execute(do_deploy, archive_path)
+    for state in results.values():
+        if not state:
+            return False
+    return True
