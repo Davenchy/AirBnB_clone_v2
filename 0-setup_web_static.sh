@@ -13,7 +13,14 @@ sudo mkdir -p /data/web_static/shared/
 sudo chown -R ubuntu:ubuntu /data
 
 # create dummy index.html file for testing
-echo "Alx School" | sudo tee /data/web_static/releases/test/index.html
+file_content="<html>
+  <head>
+  </head>
+  <body>
+    Holberton School
+  </body>
+</html>"
+echo "$file_content" > /data/web_static/releases/test/index.html
 
 # link test dir current dir, So it is is the current hosting mode
 ln -sf /data/web_static/releases/test/ /data/web_static/current
