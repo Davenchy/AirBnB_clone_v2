@@ -4,7 +4,6 @@ This module generates a .tgz archive
 from the contents of the web_static folder.
 """
 
-from fabric import SerialGroup
 from os.path import exists
 from fabric.api import *
 
@@ -35,3 +34,5 @@ def do_deploy(archive_path):
         return True
     except Exception:
         return False
+
+do_deploy('versions/web_static_20170315003959.tgz')
