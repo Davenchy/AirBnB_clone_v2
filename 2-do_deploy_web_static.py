@@ -6,13 +6,11 @@ This module deploys the web_static archive to the servers.
 from os.path import exists
 from fabric.api import *
 import shlex
-from fabric import task
 
 env.hosts = ['54.237.43.214', '54.208.103.110']
 env.user = 'ubuntu'
 
 
-@task
 def do_deploy(archive_path):
     """Deploy web_static."""
     if not exists(archive_path):
