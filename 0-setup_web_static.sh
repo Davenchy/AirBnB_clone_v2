@@ -10,7 +10,7 @@ sudo mkdir -p /data/web_static/releases/test/
 sudo mkdir -p /data/web_static/shared/
 
 # change /data directory owner to ubuntu:ubuntu
-sudo chown -R ubuntu:ubuntu /data
+sudo chown -hR ubuntu:ubuntu /data
 
 # create dummy index.html file for testing
 file_content="<html>
