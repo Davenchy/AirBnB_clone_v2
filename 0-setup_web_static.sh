@@ -19,7 +19,9 @@ file_content="<html>
 </html>"
 echo "$file_content" | sudo tee /data/web_static/releases/test/index.html
 
-# link test dir current dir, So it is is the current hosting mode
+# remove and to recreate
+rm -f "/data/web_static/current"
+# link test/ dir current/ dir, So it is is the current hosting mode
 sudo ln -sf /data/web_static/releases/test/ /data/web_static/current
 
 # change /data directory owner to ubuntu:ubuntu
