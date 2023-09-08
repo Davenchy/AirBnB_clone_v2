@@ -80,13 +80,15 @@ def do_clean(number=0):
     number = 1 if number < 1 else number
 
     files = local('ls -t1 versions/', capture=True).split()
-    for file in files[:-number]:
+    files = list(filter(lambda f: f.startswith('web_static'), files))
+    for file in files[number:]:
         local(f'rm versions/{file}')
 
-    root = '/data/web_static/releases/'
-    files = run(f'ls -t1 {root}', capture=True).split()
-    for file in files[:-number]:
-        local(f'rm {root}{file}')
+    root = '/data/web_static/releases'
+    files = run(f'ls -t1 {root}').split()
+    files = list(filter(lambda f: f.startswith('web_static'), files))
+    for file in files[number:]:
+        run(f'rm -r {root}/{file}/')
 
 
 @task
