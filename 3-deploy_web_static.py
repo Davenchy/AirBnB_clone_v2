@@ -58,13 +58,13 @@ def do_deploy(archive_path):
         put(archive_path, tmp_path)
 
         # decompress the archive
-        run(f"mkdir -p {release_path}")
-        run(f"tar -xzf {tmp_path} -C {release_path}")
-        run(f"rm {tmp_path}")
-        run(f"mv {release_path}web_static/* {release_path}")
-        run(f"rm -rf {release_path}web_static")
-        run("rm -rf /data/web_static/current")
-        run(f"ln -s {release_path} /data/web_static/current")
+        sudo(f"mkdir -p {release_path}")
+        sudo(f"tar -xzf {tmp_path} -C {release_path}")
+        sudo(f"rm {tmp_path}")
+        sudo(f"mv {release_path}web_static/* {release_path}")
+        sudo(f"rm -rf {release_path}web_static")
+        sudo("rm -rf /data/web_static/current")
+        sudo(f"ln -s {release_path} /data/web_static/current")
         print('New version deployed!')
 
     except Exception:

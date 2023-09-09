@@ -6,9 +6,9 @@ from os.path import exists, getsize, basename, join, isfile
 from os import mkdir, listdir
 from datetime import datetime
 
-env.user = 'ubuntu'  # servers username
-env.hosts = ['54.162.238.187', '54.175.189.248']  # servers ip addresses
-env.key_filename = "~/.ssh/school"
+# env.user = 'ubuntu'  # servers username
+# env.hosts = ['54.162.238.187', '54.175.189.248']  # servers ip addresses
+# env.key_filename = "~/.ssh/school"
 
 
 @task
@@ -58,13 +58,13 @@ def do_deploy(archive_path):
         put(archive_path, tmp_path)
 
         # decompress the archive
-        run(f"mkdir -p {release_path}")
-        run(f"tar -xzf {tmp_path} -C {release_path}")
-        run(f"rm {tmp_path}")
-        run(f"mv {release_path}web_static/* {release_path}")
-        run(f"rm -rf {release_path}web_static")
-        run("rm -rf /data/web_static/current")
-        run(f"ln -s {release_path} /data/web_static/current")
+        sudo(f"mkdir -p {release_path}")
+        sudo(f"tar -xzf {tmp_path} -C {release_path}")
+        sudo(f"rm {tmp_path}")
+        sudo(f"mv {release_path}web_static/* {release_path}")
+        sudo(f"rm -rf {release_path}web_static")
+        sudo("rm -rf /data/web_static/current")
+        sudo(f"ln -s {release_path} /data/web_static/current")
         print('New version deployed!')
 
     except Exception:
@@ -88,7 +88,7 @@ def do_clean(number=0):
     files = run(f'ls -t1 {root}').split()
     files = list(filter(lambda f: f.startswith('web_static'), files))
     for file in files[number:]:
-        run(f'rm -r {root}/{file}/')
+        sudo(f'rm -r {root}/{file}/')
 
 
 @task
