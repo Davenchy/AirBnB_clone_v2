@@ -7,7 +7,7 @@ from os import mkdir
 from datetime import datetime
 
 env.user = 'ubuntu'  # servers username
-env.hosts = ['54.162.238.187', '54.175.189.248']  # servers ip addresses
+# env.hosts = ['54.162.238.187', '54.175.189.248']  # servers ip addresses
 
 
 def do_pack():
