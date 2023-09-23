@@ -34,6 +34,7 @@ class FileStorage:
         """Loads storage dictionary from file"""
         try:
             temp = {}
+            self.__objects.clear()
             with open(FileStorage.__file_path, 'r') as f:
                 temp = json.load(f)
 
