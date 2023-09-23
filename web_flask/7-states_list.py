@@ -8,11 +8,17 @@ app = Flask(__name__)
 app.url_map.strict_slashes = False
 
 
+@app.teardown_appcontext
+def close_db(_):
+    """Close db session after each request"""
+    if storage is not None:
+        storage.close()
+
+
 @app.route('/states_list')
 def states_list_route():
     """States list route"""
     states = storage.all('State').values()
-    storage.close()  # close the db session
     return render_template('7-states_list.html', states=states)
 
 
