@@ -1,7 +1,7 @@
 #!/usr/bin/python3
 """This module defines a class to manage file storage for hbnb clone"""
 import json
-from models import injector
+import models
 
 
 class FileStorage:
@@ -14,10 +14,8 @@ class FileStorage:
         if not cls:
             return FileStorage.__objects
 
-        classes = injector.classes
-
         if type(cls) == str:
-            cls = classes[cls]
+            cls = models.classes[cls]
 
         return {k: v for k, v in FileStorage.__objects.items()
                 if isinstance(v, cls)}
@@ -34,15 +32,13 @@ class FileStorage:
 
     def reload(self):
         """Loads storage dictionary from file"""
-        # load injected classes
-        classes = injector.classes
         try:
             temp = {}
             with open(FileStorage.__file_path, 'r') as f:
                 temp = json.load(f)
 
                 for key, val in temp.items():
-                    self.all()[key] = classes[val['__class__']](**val)
+                    self.all()[key] = models.classes[val['__class__']](**val)
         except FileNotFoundError:
             pass
 
@@ -50,3 +46,7 @@ class FileStorage:
         """delete obj from __objects dict if it's inside."""
         if obj:
             del FileStorage.__objects[obj.objectKey]
+
+    def close(self):
+        """Closes storage"""
+        self.reload()

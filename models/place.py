@@ -3,7 +3,6 @@
 from models.base_model import BaseModel, Base
 from sqlalchemy import Column, String, ForeignKey, Integer, Float, Table
 from sqlalchemy.orm import relationship
-from models import storage, injector
 from models.review import Review
 import models.user  # !NOTE: required for ORM
 from os import environ
@@ -48,7 +47,7 @@ class Place(BaseModel, Base):
         @property
         def reviews(self):
             """Get a list of Review instances for the current place."""
-            all_reviews = storage.all(Review)
+            all_reviews = models.storage.all(Review)
             place_reviews = []
             for review in all_reviews.values():
                 if (self.id == review.place_id):
@@ -64,7 +63,7 @@ class Place(BaseModel, Base):
         @amenities.setter
         def amenities(self, new_amenity):
             """append new Amenity's id to the attribute amenity_ids."""
-            Amenity = injector['Amenity']
+            Amenity = models.classes['Amenity']
             if type(new_amenity) == Amenity:
                 if new_amenity.id not in self.amenity_ids:
                     self.amenity_ids.append(new_amenity.id)

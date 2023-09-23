@@ -2,8 +2,16 @@
 """This module defines a class to manage db storage for hbnb clone."""
 from sqlalchemy import create_engine
 from os import environ
-from sqlalchemy.orm import sessionmaker, scoped_session
+from sqlalchemy.orm import Session, sessionmaker, scoped_session
 import models
+from models.base_model import Base
+
+DB_USER = environ.get('HBNB_MYSQL_USER')
+DB_PWD = environ.get('HBNB_MYSQL_PWD')
+DB_HOST = environ.get('HBNB_MYSQL_HOST')
+DB_NAME = environ.get('HBNB_MYSQL_DB')
+HBNB_ENV = environ.get('HBNB_ENV')
+DB_TYPE = environ.get('HBNB_TYPE_STORAGE')
 
 
 class DBStorage:
@@ -14,31 +22,27 @@ class DBStorage:
     def __init__(self):
         """Create the db engine."""
 
-        user = environ.get('HBNB_MYSQL_USER')
-        passwd = environ.get('HBNB_MYSQL_PWD')
-        host = environ.get('HBNB_MYSQL_HOST')
-        db = environ.get('HBNB_MYSQL_DB')
-
         self.__engine = create_engine(
-            f'mysql+mysqldb://{user}:{passwd}@{host}/{db}', pool_pre_ping=True)
+            'mysql+mysqldb://{}:{}@{}/{}'.format(
+                DB_USER, DB_PWD, DB_HOST, DB_NAME
+            ), pool_pre_ping=True)
 
-        if (environ.get('HBNB_ENV') == 'test'):
-            Base = models.general_injector['Base']
+        if (HBNB_ENV == 'test'):
             Base.metadata.drop_all(self.__engine)
 
     def all(self, cls=None):
         """Return the list of objects of (optional one type of) class."""
         if cls is None:
-            classes = models.injector.classes.values()
+            classes = [models.classes[table] for table in models.tables]
             all_obj = {}
-            for iclass in classes:
-                query_result = self.__session.query(iclass).all()
+            for clsType in classes:
+                query_result = self.__session.query(clsType).all()
                 for obj in query_result:
                     all_obj[obj.objectKey] = obj
             return all_obj
 
         if (type(cls) == str):
-            cls = models.injector[cls]
+            cls = models.classes[cls]
 
         result = self.__session.query(cls).all()
         return {obj.objectKey: obj for obj in result}
@@ -58,10 +62,14 @@ class DBStorage:
 
     def reload(self):
         """Create all tables in the database"""
-        Base = models.general_injector['Base']
         Base.metadata.create_all(self.__engine)
         session_factory = sessionmaker(
             bind=self.__engine, expire_on_commit=False)
         # to make Session thread-safe
-        Session = scoped_session(session_factory)
-        self.__session = Session()
+        Scope = scoped_session(session_factory)
+        self.__session = Scope()
+
+    def close(self):
+        """Closes storage"""
+        if self.__session is Session and self.__session is not None:
+            self.__session.close()
