@@ -2,8 +2,6 @@
 """ Review module for the HBNB project """
 from models.base_model import BaseModel, Base
 from sqlalchemy import Column, String, ForeignKey
-import models.place  # !NOTE: required for ORM
-import models.user  # !NOTE: required for ORM
 
 
 class Review(BaseModel, Base):

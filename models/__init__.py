@@ -5,19 +5,19 @@ from models.engine.db_storage import DBStorage
 from models.engine.file_storage import FileStorage
 from models.utils.consts import DB_TYPE
 
-from models.base_model import BaseModel
+from models.base_model import BaseModel, Base
 from models.user import User
 from models.place import Place
-from models.state import State
 from models.city import City
+from models.state import State
 from models.amenity import Amenity
 from models.review import Review
 
 
 tables = {'State', 'City', 'Place', 'User', 'Review', 'Amenity'}
 classes = {
-    'BaseModel': BaseModel, 'User': User, 'Place': Place, 'State': State,
-    'City': City, 'Amenity': Amenity, 'Review': Review,
+    'BaseModel': BaseModel, 'User': User, 'State': State,
+    'City': City, 'Amenity': Amenity, 'Review': Review, 'Place': Place,
 }
 
 
