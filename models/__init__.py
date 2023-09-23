@@ -1,8 +1,9 @@
 #!/usr/bin/python3
 """This module instantiates an object of desired storage class."""
 
-from models.engine.db_storage import DBStorage, DB_TYPE
+from models.engine.db_storage import DBStorage
 from models.engine.file_storage import FileStorage
+from models.utils.consts import DB_TYPE
 
 from models.base_model import BaseModel
 from models.user import User

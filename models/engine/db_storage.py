@@ -1,17 +1,10 @@
 #!/usr/bin/python3
 """This module defines a class to manage db storage for hbnb clone."""
 from sqlalchemy import create_engine
-from os import environ
 from sqlalchemy.orm import Session, sessionmaker, scoped_session
 import models
 from models.base_model import Base
-
-DB_USER = environ.get('HBNB_MYSQL_USER')
-DB_PWD = environ.get('HBNB_MYSQL_PWD')
-DB_HOST = environ.get('HBNB_MYSQL_HOST')
-DB_NAME = environ.get('HBNB_MYSQL_DB')
-HBNB_ENV = environ.get('HBNB_ENV')
-DB_TYPE = environ.get('HBNB_TYPE_STORAGE')
+from models.utils.consts import HBNB_ENV, DB_USER, DB_PWD, DB_NAME, DB_HOST
 
 
 class DBStorage:
