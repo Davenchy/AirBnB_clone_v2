@@ -29,7 +29,7 @@ def state_id_route(id):
     for state in states:
         if state.id == id:
             return render_template('9-states.html', state=state)
-    return render_template('9-states.html', notFound=True)
+    return render_template('9-states.html')
 
 
 if __name__ == '__main__':
