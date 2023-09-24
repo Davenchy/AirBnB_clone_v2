@@ -19,17 +19,14 @@ def close_db(_):
 def hbnb_route():
     """HBNB route"""
 
-    def sort_by_name(obj):
-        return obj.name
-
-    states = list(storage.all('State').values())
-    amenities = list(storage.all('Amenity').values())
-    places = list(storage.all('Place').values())
+    states = storage.all('State').values()
+    amenities = storage.all('Amenity').values()
+    places = storage.all('Place').values()
 
     return render_template('100-hbnb.html',
-                           states=sorted(states, key=sort_by_name),
-                           amenities=sorted(amenities, key=sort_by_name),
-                           places=sorted(places, key=sort_by_name))
+                           states=states,
+                           amenities=amenities,
+                           places=places)
 
 
 if __name__ == '__main__':
