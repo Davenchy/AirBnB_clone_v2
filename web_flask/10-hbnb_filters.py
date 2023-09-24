@@ -18,10 +18,16 @@ def close_db(_):
 @app.route('/hbnb_filters')
 def hbnb_filters_route():
     """HBNB filters route"""
-    states = storage.all('State').values()
-    amenities = storage.all('Amenity').values()
-    return render_template('10-hbnb_filters.html', states=states,
-                           amenities=amenities)
+
+    def sort_by_name(obj):
+        return obj.name
+
+    states = list(storage.all('State').values())
+    amenities = list(storage.all('Amenity').values())
+
+    return render_template('10-hbnb_filters.html',
+                           states=sorted(states, key=sort_by_name),
+                           amenities=sorted(amenities, key=sort_by_name))
 
 
 if __name__ == '__main__':
