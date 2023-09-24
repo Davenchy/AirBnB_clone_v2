@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+	<title>AirBnB Clone</title>
+	<meta charset="utf-8" />
+	<link rel="icon" href="static/images/icon.png" />
+	<link rel="stylesheet" href="static/styles/4-common.css" />
+	<link rel="stylesheet" href="static/styles/3-header.css" />
+	<link rel="stylesheet" href="static/styles/3-footer.css" />
+	<link rel="stylesheet" href="static/styles/6-filters.css" />
+	<link rel="stylesheet" href="static/styles/8-places.css" />
+</head>
+
+<body>
+	<header>
+		<div class="logo"></div>
+	</header>
+	<div class="container">
+		<section class="filters">
+			<div class="locations">
+				<h3>States</h3>
+				<h4>&nbsp;</h4>
+				<div class="popover">
+					{% for state in states %}
+					<h2>{{ state.name }}</h2>
+					<ul>
+						{% for city in state.cities %}
+						<li>{{ city.name }}</li>
+						{% endfor %}
+					</ul>
+					{% endfor %}
+				</div>
+			</div>
+			<div class="amenities">
+				<h3>Amenities</h3>
+				<h4>&nbsp;</h4>
+				<div class="popover">
+					<ul>
+						{% for amenity in amenities %}
+						<li>{{ amenity.name }}</li>
+						{% endfor %}
+					</ul>
+				</div>
+			</div>
+			<button>Search</button>
+		</section>
+		<section class="places">
+			<h1>Places</h1>
+			<ul>
+				{% for place in places %}
+				<li>
+					<article>
+						<h2>{{ place.name }}</h2>
+						<div class="price_by_night">${{ place.price_by_night }}</div>
+						<div class="information">
+							<div class="max_guest">{{ place.max_guest }} Guest</div>
+							<div class="number_rooms">{{ place.number_rooms }} Bedroom</div>
+							<div class="number_bathrooms">
+								{{ place.number_bathrooms }} Bathroom
+							</div>
+						</div>
+						<div class="user">
+							<strong>Owner</strong>: {{ place.user.first_name }}
+						</div>
+						<div class="description">{{ place.description }}</div>
+					</article>
+				</li>
+				{% endfor %}
+			</ul>
+		</section>
+	</div>
+	<footer>Best School</footer>
+</body>
+
+</html>

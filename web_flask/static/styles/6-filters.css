@@ -60,6 +60,7 @@
   max-height: 300px;
   padding: 40px 20px;
   overflow-y: scroll;
+  z-index: 10;
 }
 
 .filters > div:hover > .popover {
