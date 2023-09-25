@@ -18,7 +18,7 @@ def close_db(_):
 @app.route('/states')
 def states_route():
     """All states route"""
-    states = storage.all('State').values()
+    states = storage.all('State').values() or list()
     return render_template('9-states.html', states=states)
 
 
